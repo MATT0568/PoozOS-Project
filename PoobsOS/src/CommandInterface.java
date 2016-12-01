@@ -115,7 +115,7 @@ public class CommandInterface implements ActionListener, Runnable{
 		String[] command = text.split(" ");
 		switch (command[0].toUpperCase()){
 			case "PROC":
-				addData("" + sched.getWaitingQueue().toString());
+				addData("" + sched.getWaitingQueue().toString() + sched.getReadyQueue().toString());
 				break;
 			case "MEM":
 				addData("RAM USAGE:: " + (ram.totalMemory - ram.availableMemory) + "/256K");
@@ -138,11 +138,6 @@ public class CommandInterface implements ActionListener, Runnable{
 				}
 				break;
 			case "EXE":
-				
-				//PCB pcb = PCB;
-				
-				
-				//System.out.println(sched.nextProcess().getProcess().toString());
 				String line = 
 				temp + "	" + sched.nextProcess().getPID() + "	" + sched.nextProcess().getState() + "	" + 
 				sched.nextProcess().getCommandIndex() + "		" + sched.nextProcess().getAllottedTime() + "		" + sched.nextProcess().getArrival() + "		" + 
@@ -153,8 +148,6 @@ public class CommandInterface implements ActionListener, Runnable{
 				addData(line);
 				break;
 			case "RESET":
-				//CPU cpu = CPU.getInstance();
-				//cpu.
 				break;
 			case "EXIT":
 				System.exit(0);
