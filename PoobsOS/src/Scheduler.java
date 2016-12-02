@@ -6,29 +6,33 @@ import java.util.List;
 
 public final class Scheduler {
 
+	// Data sets
 	public static HashMap<Integer, Process> processes;
 	public static HashMap<Integer, Long> cpuTime;
 	public static HashMap<Integer, Long> waitingTime;
 	public static HashMap<Integer, Long> responseTime;
 	public static HashMap<Integer, Long> queueEntry;
 
-	// private static ExecutionQueue ready;
-
-	private static ArrayList<PCB> ready;
-	private static int pIndex;
-
+	// Ready and waiting lists
+	private static RoundRobin<PCB> ready;
 	private static List<PCB> waiting;
-	private static Interpreter interp = Interpreter.getInstance();;
 
 	private static int quantum = 10;
+
+	// Instances of singleton classes
 	private static CPU cpu = CPU.getInstance();
 	private static Clock clock = Clock.getInstance();
 	private static Memory ram = Memory.getInstance();
+
 	private static PCB cpr = null;
+
 	private static Scheduler instance = new Scheduler();
+
 	private IOBurst burst = new IOBurst();
 
 	private Scheduler() {
+
+		// Instantiate data sets
 		processes = new HashMap<Integer, Process>();
 		cpuTime = new HashMap<Integer, Long>();
 		waitingTime = new HashMap<Integer, Long>();
@@ -36,10 +40,9 @@ public final class Scheduler {
 		queueEntry = new HashMap<Integer, Long>();
 
 		// ready = new ExecutionQueue();
-		ready = new ArrayList<PCB>();
-		pIndex = 0;
+		ready = new RoundRobin<PCB>();
+
 		waiting = new LinkedList<PCB>();
-		interp = Interpreter.getInstance();
 	}
 
 	public static Scheduler getInstance() {
@@ -51,59 +54,22 @@ public final class Scheduler {
 
 		// If memory is available, add to ready queue
 		if (ram.getAvailableMemory() - p.getRequiredMemory() >= 0) {
-			ready.add(pcb);
+			ready.enQueue(pcb);
 			System.out.println("Programs in the ready queue: " + ready.size());
 			processes.put(p.getPID(), p);
-			ram.allocateMemory(p.getRequiredMemory());
+			ram.allocateMemory(pcb.getRequiredMemory());
 			pcb.setState(State.READY);
+			processes.get(p.getPID());
 		}
 
 		// Otherwise add to wait queue
 		else {
-			System.out.println("Not enough RAM available. Storing program in wait queue");
+			System.out
+					.println("Not enough RAM available. Storing program in wait queue");
 			waiting.add(pcb);
 			System.out.println("Programs in wait queue: " + waiting.size());
 			pcb.setState(State.WAIT);
 		}
-	}
-
-	// Remove a job from the ready queue
-	public void removePCB(int PID) {
-		PCB pcb = ready.remove(PID);
-		ram.restoreMemory(pcb.getProcess().getRequiredMemory());
-		processes.remove(PID);
-
-	}
-
-	public PCB nextProcess() {
-		PCB pcb = null;
-		pIndex++;
-		if (ready.size() > pIndex) {
-			pcb = ready.get(pIndex);
-		}
-
-		// If there are no processes to the left, loop back around
-		else if (!ready.isEmpty()) {
-			pIndex = 0;
-			pcb = ready.get(pIndex);
-		} else {
-			return null;
-		}
-
-		return pcb;
-	}
-	
-	public boolean hasNextProcess(){
-		if (ready.size() == 1){
-			return false;		
-		}
-		else if (pIndex < ready.size()-1){
-			return true;
-		}
-		else if ((pIndex == ready.size()-1) && ready.size() > 1){
-			return true;
-		}
-		return false;
 	}
 
 	// Set the time quantum for Round Robin
@@ -111,137 +77,82 @@ public final class Scheduler {
 		quantum = q;
 	}
 
+	public RoundRobin<PCB> getReadyList() {
+		return ready;
+	}
+
 	public void execute() {
-		PCB cpr = null;
-		int burstTime;
-		ArrayList<String> commands = new ArrayList<String>();
-		int quantumBase = 0;
+		PCB current = ready.head();
 
-		if (pIndex < ready.size()) {
-			cpr = ready.get(pIndex);
-			System.out.println("Loaded process id: " + cpr.getPID());
-			commands = cpr.getProcess().getCommands();
-		}
-
-		do {		
-			if (cpr.getCPUTime() > cpr.getAllottedTime()){
-				cpr.setCommandTime(0);
-				ready.remove(cpr);
-				cpr.incrementIndex();
-				cpr = nextProcess();
-				continue;
-				
+		while (current != null) {
+			if (!ready.hasNext()){
+				quantum = Integer.MAX_VALUE - 1;
 			}
-			else if (cpr.getCommandTime() > quantum && hasNextProcess()) {
-				cpr.setCommandTime(0);
-				cpr.setState(State.READY);
-				ready.set(pIndex, cpr);
-				cpr = nextProcess();
+			else {
+				quantum = 10;
 			}
+			
+			String instruction = current.getInstruction();
+			System.out.println("Current instruction is " + instruction);
+			if (instruction != null) {
+				String[] command = instruction.split(" ");
 
-			if (ready.size() == 0) {
-				System.out.println("No processes loaded");
-				break;
-			}
-
-			if (cpr.getState() == State.READY) {
-				InstructTime line = interp.interpret(commands.get(cpr.getCommandIndex()));
-				Instruct command = line.instruct;
-				int time = line.time;
-				cpr.setAllottedTime(time);
-
-				if (cpr.getCPUTime() > cpr.getProcess().getRunTime()) {
-					cpr.setState(State.EXIT);
-				}
-
-				switch (command) {
-				case CALCULATE:
-					System.out.println("Read a calculate command with runtime " + time + " :" + clock.getClock());
-					cpr.setState(State.RUN);
-					cpr.getProcess().setRunTime(time);
+				switch (command[0]) {
+				case "CALCULATE":
+					current.setState(State.RUN);
+					System.out.println("Read instruction CALCULATE " + command[1]);
+					int time = Integer.parseInt(command[1]);
+					int i = 0;
+					
+					for (i = 0; i < quantum && i < time; i++) {
+						System.out.println("Clock cycle " + clock.getClock());
+						cpu.advanceClock();
+					}
+					
+					if (i == time) {
+						current.removeInstruction();
+					} else {
+						current.setInstruction("CALCULATE " + (time - i));
+						current.setState(State.READY);
+						current = ready.next();
+					}
 					break;
-				case IO:
-					System.out.println("Read an IO command: " + clock.getClock());
-					cpr.setState(State.WAIT);
-					burstTime = burst.generateIOBurst();
-					System.out.println(burstTime);
-					cpr.setWait(burstTime);
+				case "I/O":
+					current.setState(State.WAIT);
+					int waitTime = burst.generateIOBurst();
+					System.out.println("IO burst of " + waitTime + " cycles");
+					current.setWaitTime(waitTime);
+					for (int j = 0; j < waitTime; j++){
+						current.decreaseWaitTime();
+						cpu.advanceClock();
+						System.out.println("Wait time is " + current.getWaitTime() + " cycles remaining");
+					}
+					current.removeInstruction();
 					break;
-				case YIELD:
-					System.out.println("Read a YIELD command");
-					nextProcess();
+				case "YIELD":
+					System.out.println("Current instruction is yield");
+					current.setState(State.READY);
+					current.removeInstruction();
+					current = ready.next();
 					break;
-				case OUT:
-					System.out.println("Hit OUT command");
+				case "OUT":
+					current.setState(State.READY);
+					System.out.println("OUT statement.");
+					current.removeInstruction();
 					break;
 				default:
 					break;
 				}
 			}
-
-			if (cpr.getState() == State.RUN) {
-				System.out.println("Entered RUN state");
-				if (cpr.getCPUTime() > cpr.getProcess().getRunTime()) {
-					if (cpr.getCommandIndex() < commands.size() - 1) {
-						cpr.setState(State.READY);
-						cpr.incrementIndex();
-					} else {
-						cpr.setState(State.EXIT);
-					}
-				} else {
-					cpr.setCPUTime(cpr.getCPUTime() + 1);
-					System.out.println("Running... : " + clock.getClock());
-				}
-
-			}
-
-			if (cpr.getState() == State.WAIT) {
-				if (cpr.getWait() <= 0) {
-					System.out.println("Wait time is " + cpr.getWait());
-					cpr.setState(State.READY);
-					cpr.incrementIndex();;
-				} else {
-					System.out.println("Waiting... : " + clock.getClock());
-					cpr.setWait(cpr.getWait() - 1);
-
-				}
-			}
-
-			if (cpr.getState() == State.EXIT) {
-				ready.remove(pIndex);
-				System.out.println("Removed process: " + cpr.getPID());
-				ram.restoreMemory(cpr.getProcess().getRequiredMemory());
-
-				// If there is available memory, load a process from the wait
-				// queue
-				// into the ready queue;
-				System.out.println("Available memory: " + ram.getAvailableMemory());
-
-				if (!waiting.isEmpty()
-						&& (ram.getAvailableMemory() > waiting.get(0).getProcess().getRequiredMemory())) {
-					PCB newProcess = waiting.get(0);
-					ready.add(newProcess);
-					System.out.println("Added process: " + newProcess.getProcess().getPID());
-					ram.allocateMemory(newProcess.getProcess().getRequiredMemory());
-					waiting.remove(0);
-				}
-
-				cpr = nextProcess();
-			}
 			
-			cpu.advanceClock();
-			cpr.setCommandTime(cpr.getCommandTime()+1);
+			else {
+				System.out.println("Process " + current.getPID() + " ran out of instructions");
+				ready.deQueue();
+				System.out.println("Process removed at clock cycle " + clock.getClock());
+				current = ready.head();
+			}
+		}
 
-		} while (cpr != null);
-
-	}
-
-	public static ArrayList<PCB> getReadyQueue() {
-		return ready;
-	}
-
-	public static List<PCB> getWaitingQueue() {
-		return waiting;
 	}
 
 }

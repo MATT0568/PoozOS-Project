@@ -86,12 +86,12 @@ public class CommandInterface implements ActionListener, Runnable{
 		frame.pack();
 		frame.setVisible(true);
 
-		ArrayList ready = sched.getReadyQueue();
-		java.util.List<PCB> waiting = sched.getWaitingQueue();
+		//ArrayList ready = sched.getReadyQueue();
+		//java.util.List<PCB> waiting = sched.getWaitingQueue();
 		
-		for(int k = 0; k < ready.size(); k++){
-			
-		}
+		//for(int k = 0; k < ready.size(); k++){
+		//	
+		//}
 	}
 	
 	public void actionPerformed(ActionEvent evt) {
@@ -115,7 +115,7 @@ public class CommandInterface implements ActionListener, Runnable{
 		String[] command = text.split(" ");
 		switch (command[0].toUpperCase()){
 			case "PROC":
-				addData("" + sched.getWaitingQueue().toString() + sched.getReadyQueue().toString());
+				//addData("" + sched.getWaitingQueue().toString() + sched.getReadyQueue().toString());
 				break;
 			case "MEM":
 				addData("RAM USAGE:: " + (ram.totalMemory - ram.availableMemory) + "/256K");
@@ -138,14 +138,14 @@ public class CommandInterface implements ActionListener, Runnable{
 				}
 				break;
 			case "EXE":
-				String line = 
-				temp + "	" + sched.nextProcess().getPID() + "	" + sched.nextProcess().getState() + "	" + 
-				sched.nextProcess().getCommandIndex() + "		" + sched.nextProcess().getAllottedTime() + "		" + sched.nextProcess().getArrival() + "		" + 
-				sched.nextProcess().getCPUTime() + "		" + sched.nextProcess().getWait() + "		" + sched.nextProcess().getCommandTime();
-				String.format("%s", line);
-				System.out.print(line);
+				//String line = 
+				//temp + "	" + sched.nextProcess().getPID() + "	" + sched.nextProcess().getState() + "	" + 
+				//sched.nextProcess().getCommandIndex() + "		" + sched.nextProcess().getAllottedTime() + "		" + sched.nextProcess().getArrival() + "		" + 
+				//sched.nextProcess().getCPUTime() + "		" + sched.nextProcess().getWait() + "		" + sched.nextProcess().getCommandTime();
+				//String.format("%s", line);
+				//System.out.print(line);
 				sched.execute();
-				addData(line);
+				//addData(line);
 				break;
 			case "RESET":
 				break;

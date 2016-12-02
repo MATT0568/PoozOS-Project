@@ -14,7 +14,7 @@ public class Process {
 		commands = new ArrayList<String>();
 	}
 	
-	public Process(int reqMem, ArrayList<String> commands){
+	public Process(int reqMem, int startTime, ArrayList<String> commands){
 		this.PID = PIDGenerator.newPID();		
 		this.reqMem = reqMem;
 		this.commands = commands;

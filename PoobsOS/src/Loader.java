@@ -34,9 +34,5 @@ public final class Loader {
 		br.close();
 		
 		sched.insertPCB(newProcess);
-		
-		
-		System.out.println(newProcess);
-		System.out.println(ram.getAvailableMemory());
 	}
 }

@@ -1,6 +1,6 @@
 
 public class IOBurst {
-	int burst = 10;
+	int burstRange = 25;
 	
 	public IOBurst(){
 		
@@ -9,7 +9,7 @@ public class IOBurst {
 	
 	// Use random number generator
 	public int generateIOBurst(){
-		return (int) ((Math.random() * burst) + 0.5);
+		return (int) ((Math.random() * burstRange) + 25.5);
 	}
 
 }
