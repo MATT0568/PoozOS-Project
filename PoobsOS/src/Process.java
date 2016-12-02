@@ -4,6 +4,8 @@ public class Process {
 	private int PID, arrivalTime, CPUTime, reqMem;
 	private int startTime;
 	private int runTime = 0;
+	private String name;
+	
 	ArrayList<String> commands;
 	private PIDGenerator pid = PIDGenerator.getInstance();
 	
@@ -32,6 +34,13 @@ public class Process {
 		return runTime;
 	}
 	
+	public void setName(String n){
+		name = n;
+	}
+	
+	public String getName(){
+		return name;
+	}
 	public int getRequiredMemory(){
 		return reqMem;
 	}

@@ -24,6 +24,7 @@ public final class Loader {
 		
 		int memReq = Integer.parseInt(br.readLine());
 		Process newProcess = new Process(memReq, startTime);
+		newProcess.setName(location);
 		
 		
 		String line;

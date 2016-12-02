@@ -12,6 +12,7 @@ public class SchedulerTest {
 
 			loader.load("program1", 0);
 			loader.load("program2", 0);
+			
 			sched.execute();
 
 		} catch (Exception e) {

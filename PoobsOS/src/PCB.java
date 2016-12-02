@@ -8,6 +8,7 @@ public class PCB {
 	private int arrival;
 	private ArrayList<String> commands = new ArrayList<String>();
 	private int instructionCounter;
+	private String name = "";
 	
 	private int waitTimeLeft;
 		
@@ -20,6 +21,7 @@ public class PCB {
 		commands = p.getCommands();
 		this.instructionCounter = 0;
 		this.waitTimeLeft = 0;
+		name = p.getName();
 	}
 		
 	public Process getProcess(){
@@ -37,6 +39,14 @@ public class PCB {
 	public PCB setState(State state){
 		this.state = state;
 		return this;
+	}
+	
+	public String getName(){
+		return name;
+	}
+	
+	public void setName(String n){
+		name = n;
 	}
 	
 	public void setArrival(int t){
