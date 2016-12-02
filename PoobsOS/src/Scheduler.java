@@ -24,7 +24,8 @@ public final class Scheduler {
 	private static Clock clock = Clock.getInstance();
 	private static Memory ram = Memory.getInstance();
 
-	private static PCB cpr = null;
+	private static PCB current = null;
+	
 
 	private static Scheduler instance = new Scheduler();
 
@@ -41,12 +42,15 @@ public final class Scheduler {
 
 		// ready = new ExecutionQueue();
 		ready = new RoundRobin<PCB>();
-
 		waiting = new LinkedList<PCB>();
 	}
 
 	public static Scheduler getInstance() {
 		return instance;
+	}
+	
+	public PCB getCurrentPCB(){
+		return current;
 	}
 
 	public void insertPCB(Process p) {
@@ -82,7 +86,7 @@ public final class Scheduler {
 	}
 
 	public void execute() {
-		PCB current = ready.head();
+		current = ready.head();
 
 		while (current != null) {
 			if (!ready.hasNext()){
