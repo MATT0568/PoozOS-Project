@@ -59,6 +59,7 @@ public final class Scheduler {
 		// If memory is available, add to ready queue
 		if (ram.getAvailableMemory() - p.getRequiredMemory() >= 0) {
 			ready.enQueue(pcb);
+			pcb.setArrival(clock.getClock());
 			System.out.println("Programs in the ready queue: " + ready.size());
 			processes.put(p.getPID(), p);
 			ram.allocateMemory(pcb.getRequiredMemory());

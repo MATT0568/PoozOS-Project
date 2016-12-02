@@ -39,6 +39,10 @@ public class PCB {
 		return this;
 	}
 	
+	public void setArrival(int t){
+		arrival = t;
+	}
+	
 	public int getRequiredMemory(){
 		return requiredMemory;
 	}
